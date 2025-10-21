@@ -1,0 +1,47 @@
+# Node.js Dependencies
+# This file lists the main dependencies for the project
+# For Node.js projects, dependencies are typically managed in package.json
+# This file is provided for reference and documentation purposes
+
+# Backend Dependencies
+express>=4.18.0
+cors>=2.8.5
+cookie-parser>=1.4.6
+dotenv>=16.0.0
+mongoose>=6.0.0
+
+# Development Dependencies
+nodemon>=2.0.0
+concurrently>=7.0.0
+
+# Frontend Dependencies (if using React/Vue/Angular)
+# react>=18.0.0
+# react-dom>=18.0.0
+# vite>=4.0.0
+
+# Database
+# mongodb>=4.0.0
+
+# Authentication & Security
+# bcryptjs>=2.4.3
+# jsonwebtoken>=9.0.0
+# express-rate-limit>=6.0.0
+
+# Validation
+# joi>=17.0.0
+# express-validator>=6.0.0
+
+# File Upload
+# multer>=1.4.0
+
+# Email
+# nodemailer>=6.0.0
+
+# Testing
+# jest>=29.0.0
+# supertest>=6.0.0
+
+# Note: For Node.js projects, install dependencies using:
+# npm install
+# or
+# yarn install
