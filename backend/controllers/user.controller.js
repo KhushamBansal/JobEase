@@ -1,135 +1,168 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
-        if(!fullname || !email || !phoneNumber || !password || !role) {
+         
+        if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
-                success: false,
-                message: 'All fields are required',
+                message: "Something is missing",
+                success: false
             });
+        };
+        const file = req.file;
+        let cloudResponse = null;
+        
+        if (file) {
+            const fileUri = getDataUri(file);
+            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
         }
+
         const user = await User.findOne({ email });
-        if(user) {
+        if (user) {
             return res.status(400).json({
+                message: 'User already exist with this email.',
                 success: false,
-                message: 'User already exists',
-            });
+            })
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.create({ fullname, email, phoneNumber, password: hashedPassword, role });
+
+        const userData = {
+            fullname,
+            email,
+            phoneNumber,
+            password: hashedPassword,
+            role,
+            profile: {}
+        };
         
+        if (cloudResponse) {
+            userData.profile.profilePhoto = cloudResponse.secure_url;
+        }
+        
+        await User.create(userData);
+
         return res.status(201).json({
-            success: true,
-            message: 'User registered successfully'
+            message: "Account created successfully.",
+            success: true
         });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
     }
 }
-
 export const login = async (req, res) => {
     try {
         const { email, password, role } = req.body;
-        if(!email || !password || !role) {
+        
+        if (!email || !password || !role) {
             return res.status(400).json({
-                success: false,
-                message: 'All fields are required',
-            });
-        }
-        let user = await User.findOne({ email, role });
-        if(!user) {
-            return res.status(400).json({
-                success: false,
-                message: 'User not found',
-            });
-        }
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if(!isPasswordMatch) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid password',
+                message: "Something is missing",
+                success: false
             });
         };
-        if(user.role !== role) {
+        let user = await User.findOne({ email });
+        if (!user) {
             return res.status(400).json({
+                message: "Incorrect email or password.",
                 success: false,
-                message: 'Invalid role',
-            });
+            })
         }
-        const tokenData={
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
+            return res.status(400).json({
+                message: "Incorrect email or password.",
+                success: false,
+            })
+        };
+
+        if (role !== user.role) {
+            return res.status(400).json({
+                message: "Account doesn't exist with current role.",
+                success: false
+            })
+        };
+
+        const tokenData = {
             userId: user._id
         }
-        const token=await jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
-        user={
+        user = {
             _id: user._id,
             fullname: user.fullname,
             email: user.email,
             phoneNumber: user.phoneNumber,
             role: user.role,
             profile: user.profile
-        };
+        }
 
-        return res.status(200).cookie('token', token, { httpOnly: true, sameSite: 'strict', maxAge: 1000 * 60 * 60 * 24 }).json({
-            success: true,
-            message: 'Login successful',
-            user
-        });
-    } catch (error) { 
+        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
+            message: `Welcome back ${user.fullname}`,
+            user,
+            success: true
+        })
+    } catch (error) {
         console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
     }
 }
 export const logout = async (req, res) => {
     try {
-        res.status(200).cookie('token', '', { httpOnly: true, sameSite: 'strict', maxAge: 0 }).json({
-            success: true,
-            message: 'Logout successful'
-        });
-        } catch (error) {
-            console.log(error);
-        }
+        return res.status(200).cookie("token", "", { maxAge: 0 }).json({
+            message: "Logged out successfully.",
+            success: true
+        })
+    } catch (error) {
+        console.log(error);
     }
+}
 export const updateProfile = async (req, res) => {
     try {
-        const { fullname, email, phoneNumber, bio, skills}= req.body;
-        const file= req.file;
-
-
-
-        if(skills){
-            skillsArray = skills.split(',');
+        const { fullname, email, phoneNumber, bio, skills } = req.body;
+        
+        const file = req.file;
+        let cloudResponse = null;
+        
+        if (file) {
+            const fileUri = getDataUri(file);
+            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
         }
 
-        const userId = req.id;
+
+
+        let skillsArray;
+        if(skills){
+            skillsArray = skills.split(",");
+        }
+        const userId = req.id; 
         let user = await User.findById(userId);
-        if(!user){
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found.",
+                success: false
             })
         }
 
-        if(fullname) user.fullname = fullname;
-        if(email) user.email = email;
-        if(phoneNumber) user.phoneNumber = phoneNumber;
-        if(bio) user.profile.bio = bio;
-        if(skills) user.profile.skills = skillsArray;
-        
+        if(fullname) user.fullname = fullname
+        if(email) user.email = email
+        if(phoneNumber)  user.phoneNumber = phoneNumber
+        if(bio) user.profile.bio = bio
+        if(skills) user.profile.skills = skillsArray
+      
+
+        if(cloudResponse && file){
+            user.profile.resume = cloudResponse.secure_url 
+            user.profile.resumeOriginalName = file.originalname 
+        }
+
 
         await user.save();
 
-        user={
+        user = {
             _id: user._id,
             fullname: user.fullname,
             email: user.email,
@@ -139,11 +172,10 @@ export const updateProfile = async (req, res) => {
         }
 
         return res.status(200).json({
-            success: true,
-            message: 'Profile updated successfully',
-            user
+            message:"Profile updated successfully.",
+            user,
+            success:true
         })
-
     } catch (error) {
         console.log(error);
     }
