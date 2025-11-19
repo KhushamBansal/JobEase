@@ -68,11 +68,12 @@ const Signup = () => {
         }
     },[])
     return (
-        <div>
+        <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50'>
             <Navbar />
-            <div className='flex items-center justify-center max-w-7xl mx-auto'>
-                <form onSubmit={submitHandler} className='w-1/2 border border-gray-200 rounded-md p-4 my-10'>
-                    <h1 className='font-bold text-xl mb-5'>Sign Up</h1>
+            <div className='flex items-center justify-center max-w-7xl mx-auto py-12'>
+                <form onSubmit={submitHandler} className='w-full max-w-md border border-gray-200 rounded-2xl p-8 bg-white shadow-xl'>
+                    <h1 className='font-bold text-3xl mb-2 text-gray-900'>Create Account</h1>
+                    <p className='text-gray-600 mb-6'>Join <span className='text-[#6A38C2] font-semibold'>JobEase</span> and start your journey</p>
                     <div className='my-2'>
                         <Label>Full Name</Label>
                         <Input
@@ -100,7 +101,7 @@ const Signup = () => {
                             value={input.phoneNumber}
                             name="phoneNumber"
                             onChange={changeEventHandler}
-                            placeholder="0000000000"
+                            placeholder="8080808080"
                         />
                     </div>
                     <div className='my-2'>
@@ -149,9 +150,9 @@ const Signup = () => {
                         </div>
                     </div>
                     {
-                        loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4">Signup</Button>
+                        loading ? <Button className="w-full my-4 bg-[#6A38C2] hover:bg-[#5b30a6]"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4 bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button>
                     }
-                    <span className='text-sm'>Already have an account? <Link to="/login" className='text-blue-600'>Login</Link></span>
+                    <span className='text-sm'>Already have an account? <Link to="/login" className='text-[#6A38C2] hover:text-[#5b30a6] font-medium'>Login</Link></span>
                 </form>
             </div>
         </div>
