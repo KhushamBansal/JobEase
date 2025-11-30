@@ -5,8 +5,6 @@ import Job from './Job';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 
-// const jobsArray = [1, 2, 3, 4, 5, 6, 7, 8];
-
 const Jobs = () => {
     const { allJobs, searchedQuery } = useSelector(store => store.job);
     const [filterJobs, setFilterJobs] = useState(allJobs);
@@ -14,9 +12,25 @@ const Jobs = () => {
     useEffect(() => {
         if (searchedQuery) {
             const filteredJobs = allJobs.filter((job) => {
+                // Check if it's a salary range filter
+                if (searchedQuery.includes('k') || searchedQuery.includes('+')) {
+                    // Parse salary range
+                    if (searchedQuery === "0-50k") {
+                        return job.salary >= 0 && job.salary < 50000;
+                    } else if (searchedQuery === "50k-100k") {
+                        return job.salary >= 50000 && job.salary < 100000;
+                    } else if (searchedQuery === "100k-150k") {
+                        return job.salary >= 100000 && job.salary < 150000;
+                    } else if (searchedQuery === "150k+") {
+                        return job.salary >= 150000;
+                    }
+                }
+
+                // Regular text filtering for title, description, location, and jobType
                 return job.title.toLowerCase().includes(searchedQuery.toLowerCase()) ||
                     job.description.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-                    job.location.toLowerCase().includes(searchedQuery.toLowerCase())
+                    job.location.toLowerCase().includes(searchedQuery.toLowerCase()) ||
+                    (job.jobType && job.jobType.toLowerCase().includes(searchedQuery.toLowerCase()));
             })
             setFilterJobs(filteredJobs)
         } else {
