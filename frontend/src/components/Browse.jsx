@@ -4,11 +4,13 @@ import Job from './Job';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSearchedQuery } from '@/redux/jobSlice';
 import useGetAllJobs from '@/hooks/useGetAllJobs';
+import useGetAppliedJobs from '@/hooks/useGetAppliedJobs';
 
 // const randomJobs = [1, 2,45];
 
 const Browse = () => {
     useGetAllJobs();
+    useGetAppliedJobs(); // Fetch applied jobs when Browse component loads
     const {allJobs} = useSelector(store=>store.job);
     const dispatch = useDispatch();
     useEffect(()=>{

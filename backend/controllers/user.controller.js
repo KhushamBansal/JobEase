@@ -97,7 +97,8 @@ export const login = async (req, res) => {
             email: user.email,
             phoneNumber: user.phoneNumber,
             role: user.role,
-            profile: user.profile
+            profile: user.profile,
+            savedJobs: user.savedJobs || []
         }
 
         return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
@@ -178,5 +179,77 @@ export const updateProfile = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+    }
+}
+export const toggleSaveJob = async (req, res) => {
+    try {
+        const userId = req.id;
+        const jobId = req.params.id;
+
+        let user = await User.findById(userId);
+        if (!user) {
+            return res.status(400).json({
+                message: 'User not found.',
+                success: false
+            })
+        }
+
+        const isJobSaved = user.savedJobs.includes(jobId);
+        if (isJobSaved) {
+            // Unsave
+            user.savedJobs = user.savedJobs.filter(id => id.toString() !== jobId);
+            await user.save();
+            return res.status(200).json({
+                message: 'Job removed from saved list.',
+                success: true,
+                isSaved: false
+            })
+        } else {
+            // Save
+            user.savedJobs.push(jobId);
+            await user.save();
+            return res.status(200).json({
+                message: 'Job saved successfully.',
+                success: true,
+                isSaved: true
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: 'Internal server error.',
+            success: false
+        })
+    }
+}
+
+export const getSavedJobs = async (req, res) => {
+    try {
+        const userId = req.id;
+        const user = await User.findById(userId).populate({
+            path: 'savedJobs',
+            populate: {
+                path: 'company',
+                select: 'name logo'
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: 'User not found.',
+                success: false
+            })
+        }
+
+        return res.status(200).json({
+            savedJobs: user.savedJobs || [],
+            success: true
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: 'Internal server error.',
+            success: false
+        })
     }
 }

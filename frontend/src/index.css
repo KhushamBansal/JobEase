@@ -73,3 +73,23 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* Fix for popover/dropdown overlap issues */
+[data-radix-portal] {
+  z-index: 9999 !important;
+}
+
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* Fix for dialog overlay and content */
+[data-radix-dialog-overlay] {
+  z-index: 100 !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 101 !important;
+  background-color: white !important;
+}

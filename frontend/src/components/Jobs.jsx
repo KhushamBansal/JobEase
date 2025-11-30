@@ -4,8 +4,10 @@ import FilterCard from './FilterCard'
 import Job from './Job';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
+import useGetAppliedJobs from '@/hooks/useGetAppliedJobs';
 
 const Jobs = () => {
+    useGetAppliedJobs(); // Fetch applied jobs when Jobs component loads
     const { allJobs, searchedQuery } = useSelector(store => store.job);
     const [filterJobs, setFilterJobs] = useState(allJobs);
 
