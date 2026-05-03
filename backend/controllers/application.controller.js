@@ -21,7 +21,7 @@ export const applyJob = async (req, res) => {
         }
 
 
-        const job = await Job.findById(jobId);
+        const job = await Job.findById(jobId).select("_id");
         if (!job) {
             return res.status(404).json({
                 message: "Job not found",
@@ -34,8 +34,9 @@ export const applyJob = async (req, res) => {
             applicant:userId,
         });
 
-        job.applications.push(newApplication._id);
-        await job.save();
+        await Job.findByIdAndUpdate(jobId, {
+            $addToSet: { applications: newApplication._id }
+        });
         return res.status(201).json({
             message:"Job applied successfully.",
             success:true
